@@ -286,12 +286,14 @@ class GessGame:
         return True
 
     def copy_board(self):
+        """Copies the board coordinates into board copy variable"""
         board_copy = [[' '] * 20 for _ in range(20)]
         for i in range(20):
             for j in range(20):
                 board_copy[i][j] = self._board[i][j]
 
     def reset_board(self, board_copy):
+        """Resets the board from the copied board coordinates"""
         board_copy = [' ' * 20 for _ in range(20)]
         for i in range(20):
             for j in range(20):
