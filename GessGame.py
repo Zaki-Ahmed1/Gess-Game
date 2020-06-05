@@ -20,9 +20,9 @@ class GessGame:
                  methods are used to move and modify the board, current player, and game state.
         """
         # Build a board rows: 1->20 x columns: A->T, Black starts first, Game Unfinished until no ring is left (or resigns)
-        self.current_player = 'B'
-        self.game_status = 'UNFINISHED'
-        self.board = [
+        self._current_player = 'B'
+        self._game_status = 'UNFINISHED'
+        self._board = [
             [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
             [' ', ' ', 'W', ' ', 'W', ' ', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', ' ', 'W', ' ', 'W', ' ', ' '],
             [' ', 'W', 'W', 'W', ' ', 'W', ' ', 'W', 'W', 'W', 'W', ' ', 'W', ' ', 'W', ' ', 'W', 'W', 'W', ' '],
@@ -46,22 +46,22 @@ class GessGame:
 
     def get_game_state(self):
         """Returns status of the game"""
-        return self.game_status
+        return self._game_status
 
     def get_board(self):
         """Returns a 2D display of the board"""
         for i in range(20):
             for j in range(20):
-                print(self.board[i][j], end='|')
+                print(self._board[i][j], end='|')
             print()
 
     def resign_game(self):
         """Trigger an end of the game if a player doesn't wish to continue"""
         # If entered, it will return winner status for the opposing player
-        if self.current_player == 'W':
-            self.game_status = 'BLACK_WON'
-        if self.current_player == 'B':
-            self.game_status = 'WHITE_WON'
+        if self._current_player == 'W':
+            self._game_status = 'BLACK_WON'
+        if self._current_player == 'B':
+            self._game_status = 'WHITE_WON'
 
     def position_to_index(self, position):
         """
@@ -129,7 +129,7 @@ class GessGame:
         # If move is illegal, return False. Otherwise return False.
 
         # If the game is over, return False.
-        if self.game_status != 'UNFINISHED':
+        if self._game_status != 'UNFINISHED':
             return False
 
         # Boundary Check to see if move is within the valid playing area (18x18)
@@ -141,20 +141,20 @@ class GessGame:
 
         # If the center is empty and distance moved is more than 3
         # return 3
-        if self.board[current_row][current_col] == ' ' and self.get_distance_moved(current_row, current_col, desired_row, desired_col) > 3:
+        if self._board[current_row][current_col] == ' ' and self.get_distance_moved(current_row, current_col, desired_row, desired_col) > 3:
             return False
 
         # Define the opposite color
         opposite_color = ' '
-        if self.current_player == 'B':
+        if self._current_player == 'B':
             opposite_color = 'W'
-        if self.current_player == 'W':
+        if self._current_player == 'W':
             opposite_color = 'B'
 
         # Check if any stones of opposing color
         for row in range(-1, 2):
             for col in range(-1, 2):
-                if self.board[current_row + row][current_col + col] == opposite_color:
+                if self._board[current_row + row][current_col + col] == opposite_color:
                     return False
 
         # Check for stone along the direction moved
@@ -164,7 +164,7 @@ class GessGame:
         if (step_row, step_col) == (0, 0):
             return False
 
-        if self.board[current_row + step_row][current_col + step_col] == ' ':
+        if self._board[current_row + step_row][current_col + step_col] == ' ':
             return False
 
         # Check for Obstruction
@@ -181,7 +181,7 @@ class GessGame:
         """
         for i in range(-1, 2):
             for j in range(-1, 2):
-                if self.board[row + i][col + j] != ' ':
+                if self._board[row + i][col + j] != ' ':
                     return True
         return False
 
@@ -194,8 +194,8 @@ class GessGame:
         temp_piece = [[' '] * 3 for i in range(3)]
         for i in range(-1, 2):
             for j in range(-1, 2):
-                temp_piece[i + 1][j + 1] = self.board[row + i][col + j]
-                self.board[row + i][col + j] = ' '
+                temp_piece[i + 1][j + 1] = self._board[row + i][col + j]
+                self._board[row + i][col + j] = ' '
         return temp_piece
 
     def place_piece_at(self, row, col, new_piece):
@@ -206,7 +206,7 @@ class GessGame:
         """
         for i in range(-1, 2):
             for j in range(-1, 2):
-                self.board[row + i][col + j] = new_piece[i + 1][j + 1]
+                self._board[row + i][col + j] = new_piece[i + 1][j + 1]
 
     def is_move_obstructed(self, current_row, current_col, desired_row, desired_col):
         """
@@ -240,8 +240,11 @@ class GessGame:
         self.place_piece_at(desired_row, desired_col, temp_piece)
 
     def make_move(self, current, desired):
-        """Take in the current attribute for the game piece, and where the player wants to move"""
-
+        """
+        Parameters: Current Position, Desired Position
+        Returns: Boolean
+        Summary: Function that allows for player to declare their move and runs a series of validity checks. Then moves the piece.
+        """
         # Get the corresponding row and column indexes
         # for the given positions
         current_row, current_col = self.position_to_index(current)
@@ -255,7 +258,7 @@ class GessGame:
 
         self.move_piece(current_row, current_col, desired_row, desired_col)
 
-        if not self.has_ring(self.current_player):
+        if not self.has_ring(self._current_player):
             self.reset_board(board_copy)
             return False
 
@@ -263,19 +266,19 @@ class GessGame:
         black_status = self.has_ring('B')
 
         if white_status == True and black_status == True:
-            self.game_status = 'UNFINISHED'
+            self._game_status = 'UNFINISHED'
 
         if white_status != True and black_status == True:
-            self.game_status = 'BLACK_WON'
+            self._game_status = 'BLACK_WON'
 
         if white_status == True and black_status != True:
-            self.game_status = 'WHITE_WON'
+            self._game_status = 'WHITE_WON'
 
         # Update the player
-        if self.current_player == 'W':
-            self.current_player = 'B'
+        if self._current_player == 'W':
+            self._current_player = 'B'
         else:
-            self.current_player = 'W'
+            self._current_player = 'W'
 
         self.get_board()
         print("")
@@ -286,45 +289,46 @@ class GessGame:
         board_copy = [[' '] * 20 for _ in range(20)]
         for i in range(20):
             for j in range(20):
-                board_copy[i][j] = self.board[i][j]
+                board_copy[i][j] = self._board[i][j]
 
     def reset_board(self, board_copy):
         board_copy = [' ' * 20 for _ in range(20)]
         for i in range(20):
             for j in range(20):
-                self.board[i][j] = board_copy[i][j]
+                self._board[i][j] = board_copy[i][j]
 
     def has_ring(self, color):
+        """
+        Parameters: Color
+        Returns: Boolean
+        Summary: Determines if there is a ring on both sides and passes the values into game status.
+        """
         for i in range(2, 19):
             for j in range(2, 19):
-                if self.board[i - 1][j] == color and \
-                        self.board[i - 1][j + 1] == color and \
-                        self.board[i][j + 1] == color and \
-                        self.board[i + 1][j + 1] == color and \
-                        self.board[i + 1][j] == color and \
-                        self.board[i + 1][j - 1] == color and \
-                        self.board[i][j - 1] == color and \
-                        self.board[i - 1][j - 1] == color and \
-                        self.board[i][j] == ' ':
+                if self._board[i - 1][j] == color and \
+                        self._board[i - 1][j + 1] == color and \
+                        self._board[i][j + 1] == color and \
+                        self._board[i + 1][j + 1] == color and \
+                        self._board[i + 1][j] == color and \
+                        self._board[i + 1][j - 1] == color and \
+                        self._board[i][j - 1] == color and \
+                        self._board[i - 1][j - 1] == color and \
+                        self._board[i][j] == ' ':
                     return True
         return False
 
 
-# For testing purposes only...
-game = GessGame()
-game.get_board()
-print("--------------------------------------------")
-print(game.make_move('c6', 'c7'))
-print("--------------------------------------------")
-print(game.make_move('c15', 'c14'))
-print("--------------------------------------------")
-print(game.make_move('c3','c5'))
-print("--------------------------------------------")
-print(game.make_move('c14', 'c13'))
-print("--------------------------------------------")
-print(game.make_move('c5','d5'))
-
-
-
-
+# # For testing purposes only...
+# game = GessGame()
+# game.get_board()
+# print("--------------------------------------------")
+# print(game.make_move('c6', 'c7'))
+# print("--------------------------------------------")
+# print(game.make_move('c15', 'c14'))
+# print("--------------------------------------------")
+# print(game.make_move('c3','c5'))
+# print("--------------------------------------------")
+# print(game.make_move('c14', 'c13'))
+# print("--------------------------------------------")
+# print(game.make_move('c5','d5'))
 # game.display_board()
