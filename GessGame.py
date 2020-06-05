@@ -12,7 +12,6 @@ class GessGame:
     Methods/Returns: Req'd - Game State, Resign, Make Move  +  Additional - Display, Is Valid, Direction, Position, Distance
     Summary: A representation of the board as a 2D list object.
     """
-
     def __init__(self):
         """
         Parameters: n/a
@@ -45,18 +44,16 @@ class GessGame:
             [' ', ' ', 'B', ' ', 'B', ' ', 'B', 'B', 'B', 'B', 'B', 'B', 'B', 'B', ' ', 'B', ' ', 'B', ' ', ' '],
             [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']]
 
-    def display_board(self):
+    def get_game_state(self):
+        """Returns status of the game"""
+        return self.game_status
+
+    def get_board(self):
+        """Returns a 2D display of the board"""
         for i in range(20):
             for j in range(20):
                 print(self.board[i][j], end='|')
             print()
-
-    def get_game_state(self):
-        """Define the status of the game"""
-        # If game is still active (i.e. Black or White >=1), return 'UNFINISHED'
-        # If there are 0 white pieces, return 'BLACK_WON'
-        # If there are 0 black pieces, return 'WHITE_WON'
-        return self.game_status
 
     def resign_game(self):
         """Trigger an end of the game if a player doesn't wish to continue"""
@@ -67,25 +64,31 @@ class GessGame:
             self.game_status = 'WHITE_WON'
 
     def position_to_index(self, position):
-        # c7, d14
+        """
+        Parameters: Position
+        Returns: Row, Column
+        Summary: Converts alphanumeric positions into index usable values for use in other functions
+        """
         row = 20 - int(position[1:])
         col = ord(position[0]) - ord('a')
         return row, col
 
     def get_desired_direction(self, current_row, current_col, desired_row, desired_col):
-
+        """
+        Parameters: Current Row, Current Column, Desired Row, Desired Column
+        Returns: Tuple of (Row, Column)
+        Summary: Helps validate if the direction that the player requested is valid.
+        """
         # UP DOWN LEFT RIGHT
         # East
         if desired_row == current_row and desired_col > current_col:
             return (0, 1)
-
         # West
         if desired_row == current_row and desired_col < current_col:
             return (0, -1)
         # North
         if desired_col == current_col and desired_row < current_row:
             return (-1, 0)
-
         # South
         if desired_col == current_col and desired_row > current_row:
             return (1, 0)
@@ -95,32 +98,37 @@ class GessGame:
         if desired_row < current_row and desired_col > current_col and \
                 (abs(desired_row - current_row) == abs(desired_col - current_col)):
             return (-1, 1)
-
         # NorthWest
         if desired_row < current_row and desired_col < current_col and \
                 (abs(desired_row - current_row) == abs(desired_col - current_col)):
             return (-1, -1)
-
         # SouthEast
         if desired_row > current_row and desired_col > current_col and \
                 (abs(desired_row - current_row) == abs(desired_col - current_col)):
             return (1, 1)
-
         # SouthWest
         if desired_row > current_row and desired_col < current_col and \
                 (abs(desired_row - current_row) == abs(desired_col - current_col)):
             return (1, -1)
-
         return (0, 0)
 
     def get_distance_moved(self, current_row, current_col, desired_row, desired_col):
+        """
+        Parameters: Current Row, Current Column, Desired Row, Desired Column
+        Returns: Distance of requested move
+        Summary: Calculates if the distance of move and used in other functions to determine if number of moves is within limits.
+        """
         return max(abs(current_row - desired_row), abs(current_col - desired_col))
 
     def is_valid(self, current_row, current_col, desired_row, desired_col):
-        """Will see if the move is within the confines of the board, then see if the move can be made"""
-        # If valid return True, else return False
+        """
+        Parameters: Current Row, Current Column, Desired Row, Desired Column
+        Returns: Distance of requested move
+        Summary: Calculates if the distance of move and used in other functions to determine if number of moves is within limits.
+        """
+        # If move is illegal, return False. Otherwise return False.
 
-        # If the game is over, return false
+        # If the game is over, return False.
         if self.game_status != 'UNFINISHED':
             return False
 
@@ -131,14 +139,13 @@ class GessGame:
                 (desired_col < 1 or desired_col > 18):
             return False
 
-        # if the center is empty and distance moved is more than 3
+        # If the center is empty and distance moved is more than 3
         # return 3
-        if self.board[current_row][current_col] == ' ' and self.get_distance_moved(current_row, current_col,
-                                                                                   desired_row,
-                                                                                   desired_col) > 3:
+        if self.board[current_row][current_col] == ' ' and self.get_distance_moved(current_row, current_col, desired_row, desired_col) > 3:
             return False
 
         # Define the opposite color
+        opposite_color = ' '
         if self.current_player == 'B':
             opposite_color = 'W'
         if self.current_player == 'W':
@@ -167,6 +174,11 @@ class GessGame:
         return True
 
     def has_stone_at(self, row, col):
+        """
+        Parameters: Row, Column
+        Returns: Boolean
+        Summary: Determines if a stone exists as passed in coordinates.
+        """
         for i in range(-1, 2):
             for j in range(-1, 2):
                 if self.board[row + i][col + j] != ' ':
@@ -174,6 +186,11 @@ class GessGame:
         return False
 
     def remove_piece_at(self, row, col):
+        """
+        Parameters: Row, Column
+        Returns: Game Piece
+        Summary: Determines if a stone exists as passed in coordinates.
+        """
         temp_piece = [[' '] * 3 for i in range(3)]
         for i in range(-1, 2):
             for j in range(-1, 2):
@@ -182,11 +199,21 @@ class GessGame:
         return temp_piece
 
     def place_piece_at(self, row, col, new_piece):
+        """
+        Parameters: Row, Column, Piece
+        Returns: n/a
+        Summary: Creates a new piece to place in proper position.
+        """
         for i in range(-1, 2):
             for j in range(-1, 2):
                 self.board[row + i][col + j] = new_piece[i + 1][j + 1]
 
     def is_move_obstructed(self, current_row, current_col, desired_row, desired_col):
+        """
+        Parameters: Current Row, Current Column, Desired Row, Desired Column
+        Returns: Boolean
+        Summary: Determines if a move is valid and unobstructed.
+        """
         row_change, col_change = self.get_desired_direction(current_row, current_col, desired_row, desired_col)
 
         temp_piece = self.remove_piece_at(current_row, current_col)
@@ -204,6 +231,11 @@ class GessGame:
         return False
 
     def move_piece(self, current_row, current_col, desired_row, desired_col):
+        """
+        Parameters: Current Row, Current Column, Desired Row, Desired Column
+        Returns: n/a
+        Summary: Moves the piece to the proper location and passes it into the helper function.
+        """
         temp_piece = self.remove_piece_at(current_row, current_col)
         self.place_piece_at(desired_row, desired_col, temp_piece)
 
@@ -231,13 +263,13 @@ class GessGame:
         black_status = self.has_ring('B')
 
         if white_status == True and black_status == True:
-            self.game_status == 'UNFINISHED'
+            self.game_status = 'UNFINISHED'
 
         if white_status != True and black_status == True:
-            self.game_status == 'BLACK_WON'
+            self.game_status = 'BLACK_WON'
 
         if white_status == True and black_status != True:
-            self.game_status == 'WHITE_WON'
+            self.game_status = 'WHITE_WON'
 
         # Update the player
         if self.current_player == 'W':
@@ -245,7 +277,7 @@ class GessGame:
         else:
             self.current_player = 'W'
 
-        self.display_board()
+        self.get_board()
         print("")
 
         return True
@@ -279,18 +311,18 @@ class GessGame:
 
 
 # For testing purposes only...
-# game = GessGame()
-# game.display_board()
-# print("--------------------------------------------")
-# print(game.make_move('c6', 'c7'))
-# print("--------------------------------------------")
-# print(game.make_move('c15', 'c14'))
-# print("--------------------------------------------")
-# print(game.make_move('c3','c5'))
-# print("--------------------------------------------")
-# print(game.make_move('c14', 'c13'))
-# print("--------------------------------------------")
-# print(game.make_move('c5','d5'))
+game = GessGame()
+game.get_board()
+print("--------------------------------------------")
+print(game.make_move('c6', 'c7'))
+print("--------------------------------------------")
+print(game.make_move('c15', 'c14'))
+print("--------------------------------------------")
+print(game.make_move('c3','c5'))
+print("--------------------------------------------")
+print(game.make_move('c14', 'c13'))
+print("--------------------------------------------")
+print(game.make_move('c5','d5'))
 
 
 
