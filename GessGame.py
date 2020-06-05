@@ -45,7 +45,6 @@ class GessGame:
             [' ', ' ', 'B', ' ', 'B', ' ', 'B', 'B', 'B', 'B', 'B', 'B', 'B', 'B', ' ', 'B', ' ', 'B', ' ', ' '],
             [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']]
 
-
     def display_board(self):
         for i in range(20):
             for j in range(20):
@@ -78,41 +77,41 @@ class GessGame:
         # UP DOWN LEFT RIGHT
         # East
         if desired_row == current_row and desired_col > current_col:
-            return 'East'
+            return (0, 1)
 
         # West
         if desired_row == current_row and desired_col < current_col:
-            return 'West'
+            return (0, -1)
         # North
         if desired_col == current_col and desired_row < current_row:
-            return 'North'
+            return (-1, 0)
 
         # South
         if desired_col == current_col and desired_row > current_row:
-            return 'South'
+            return (1, 0)
 
         # DIAGONALS
         # NorthEast
         if desired_row < current_row and desired_col > current_col and \
                 (abs(desired_row - current_row) == abs(desired_col - current_col)):
-            return 'NorthEast'
+            return (-1, 1)
 
         # NorthWest
         if desired_row < current_row and desired_col < current_col and \
                 (abs(desired_row - current_row) == abs(desired_col - current_col)):
-            return 'NorthEast'
+            return (-1, -1)
 
         # SouthEast
         if desired_row > current_row and desired_col > current_col and \
                 (abs(desired_row - current_row) == abs(desired_col - current_col)):
-            return 'SouthEast'
+            return (1, 1)
 
         # SouthWest
         if desired_row > current_row and desired_col < current_col and \
                 (abs(desired_row - current_row) == abs(desired_col - current_col)):
-            return 'SouthWest'
+            return (1, -1)
 
-        return "NA"
+        return (0, 0)
 
     def get_distance_moved(self, current_row, current_col, desired_row, desired_col):
         return max(abs(current_row - desired_row), abs(current_col - desired_col))
@@ -152,43 +151,13 @@ class GessGame:
                     return False
 
         # Check for stone along the direction moved
-        direction_moved = self.get_desired_direction(current_row, current_col, desired_row, desired_col)
-        print('direction_moved =', direction_moved)
+        (step_row, step_col) = self.get_desired_direction(current_row, current_col, desired_row, desired_col)
 
         # Invalid direction
-        if direction_moved == "NA":
+        if (step_row, step_col) == (0, 0):
             return False
 
-        # See if stone in the East
-        if direction_moved == "East" and self.board[current_row][current_col + 1] == ' ':
-            return False
-
-        # See if stone in the West
-        if direction_moved == "West" and self.board[current_row][current_col - 1] == ' ':
-            return False
-
-        # See if stone in the North
-        if direction_moved == "North" and self.board[current_row - 1][current_col] == ' ':
-            return False
-
-        # See if stone in the South
-        if direction_moved == "South" and self.board[current_row + 1][current_col] == ' ':
-            return False
-
-        # See if stone in the NorthEast
-        if direction_moved == "NorthEast" and self.board[current_row - 1][current_col + 1] == ' ':
-            return False
-
-        # See if stone in the NorthWest
-        if direction_moved == "NorthWest" and self.board[current_row - 1][current_col - 1] == ' ':
-            return False
-
-        # See if stone in the SouthEast
-        if direction_moved == "SouthEast" and self.board[current_row + 1][current_col + 1] == ' ':
-            return False
-
-        # See if stone in the SouthWest
-        if direction_moved == "SouthWest" and self.board[current_row + 1][current_col - 1] == ' ':
+        if self.board[current_row + step_row][current_col + step_col] == ' ':
             return False
 
         # Check for Obstruction
@@ -208,17 +177,14 @@ class GessGame:
         temp_piece = [[' '] * 3 for i in range(3)]
         for i in range(-1, 2):
             for j in range(-1, 2):
-                temp[i + 1][j + 1] = self.board[row + i][col + j]
+                temp_piece[i + 1][j + 1] = self.board[row + i][col + j]
                 self.board[row + i][col + j] = ' '
         return temp_piece
 
-    # def palce_piece_at(self, row, col, temp_piece):
-    #     temp_piece = [[' '] * 3 for i in range(3)]
-    #     for i in range(-1, 2):
-    #         for j in range(-1, 2):
-    #             self.board[row + i][col + j] = temp[i + 1][j + 1] =
-    #             self.board[row + i][col + j] = ' '
-    #     return temp_piece
+    def place_piece_at(self, row, col, new_piece):
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                self.board[row + i][col + j] = new_piece[i + 1][j + 1]
 
     def is_move_obstructed(self, current_row, current_col, desired_row, desired_col):
         row_change, col_change = self.get_desired_direction(current_row, current_col, desired_row, desired_col)
@@ -227,13 +193,19 @@ class GessGame:
 
         while current_row != desired_row and current_col != desired_col:
             if self.has_stone_at(current_row, current_col):
+                self.place_piece_at(current_row, current_col, temp_piece)
                 return True
 
             # Update the center direction
             current_row += row_change
             current_col += col_change
 
+        self.place_piece_at(current_row, current_col, temp_piece)
         return False
+
+    def move_piece(self, current_row, current_col, desired_row, desired_col):
+        temp_piece = self.remove_piece_at(current_row, current_col)
+        self.place_piece_at(desired_row, desired_col, temp_piece)
 
     def make_move(self, current, desired):
         """Take in the current attribute for the game piece, and where the player wants to move"""
@@ -243,14 +215,84 @@ class GessGame:
         current_row, current_col = self.position_to_index(current)
         desired_row, desired_col = self.position_to_index(desired)
 
+        board_copy = self.copy_board()
+
         # If it is valid
         if self.is_valid(current_row, current_col, desired_row, desired_col) == False:
             return False
 
-        # This will move any associated pieces that need to be moved too
-        # It will remove the pieces that are captured, if any
+        self.move_piece(current_row, current_col, desired_row, desired_col)
+
+        if not self.has_ring(self.current_player):
+            self.reset_board(board_copy)
+            return False
+
+        white_status = self.has_ring('W')
+        black_status = self.has_ring('B')
+
+        if white_status == True and black_status == True:
+            self.game_status == 'UNFINISHED'
+
+        if white_status != True and black_status == True:
+            self.game_status == 'BLACK_WON'
+
+        if white_status == True and black_status != True:
+            self.game_status == 'WHITE_WON'
+
+        # Update the player
+        if self.current_player == 'W':
+            self.current_player = 'B'
+        else:
+            self.current_player = 'W'
+
+        self.display_board()
+        print("")
+
+        return True
+
+    def copy_board(self):
+        board_copy = [[' '] * 20 for _ in range(20)]
+        for i in range(20):
+            for j in range(20):
+                board_copy[i][j] = self.board[i][j]
+
+    def reset_board(self, board_copy):
+        board_copy = [' ' * 20 for _ in range(20)]
+        for i in range(20):
+            for j in range(20):
+                self.board[i][j] = board_copy[i][j]
+
+    def has_ring(self, color):
+        for i in range(2, 19):
+            for j in range(2, 19):
+                if self.board[i - 1][j] == color and \
+                        self.board[i - 1][j + 1] == color and \
+                        self.board[i][j + 1] == color and \
+                        self.board[i + 1][j + 1] == color and \
+                        self.board[i + 1][j] == color and \
+                        self.board[i + 1][j - 1] == color and \
+                        self.board[i][j - 1] == color and \
+                        self.board[i - 1][j - 1] == color and \
+                        self.board[i][j] == ' ':
+                    return True
+        return False
 
 
-game = GessGame()
-game.display_board()
-print(game.make_move('g2', 'e7'))
+# For testing purposes only...
+# game = GessGame()
+# game.display_board()
+# print("--------------------------------------------")
+# print(game.make_move('c6', 'c7'))
+# print("--------------------------------------------")
+# print(game.make_move('c15', 'c14'))
+# print("--------------------------------------------")
+# print(game.make_move('c3','c5'))
+# print("--------------------------------------------")
+# print(game.make_move('c14', 'c13'))
+# print("--------------------------------------------")
+# print(game.make_move('c5','d5'))
+
+
+
+
+# game.display_board()
